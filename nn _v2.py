@@ -4,9 +4,11 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import matplotlib.pyplot as plt
-   
+import time
+from sklearn.preprocessing import PolynomialFeatures
+
 model = torch.nn.Sequential(
-        torch.nn.Linear(9, 512),
+        torch.nn.Linear(55, 512),
         torch.nn.Sigmoid(),
         # torch.nn.Linear(512, 512),
         # torch.nn.Sigmoid(),
@@ -50,6 +52,8 @@ def normalize_Logistic(x):
 
 
 def main():
+    start = time.time()
+
     trainX, train_CO, train_NOX = load_train()
     testX, test_CO, test_NOX = load_test()
 
@@ -65,10 +69,13 @@ def main():
     # trainX = np.delete(trainX,(4,5,8),1)
     # testX = np.delete(testX,(4,5,8),1)
 
+    poly = PolynomialFeatures(2)
+    trainX = poly.fit_transform(trainX)
+    testX = poly.fit_transform(testX)
 
     my_loss = []
     for t in range(100):
-        print(t,'*'*50)
+        # print(t,'*'*50)
         # train_set = TensorDataset(torch.Tensor(trainX), torch.Tensor(train_CO).type(torch.float))
         # train_loader = DataLoader(dataset=train_set, batch_size = 512, shuffle=True)
         
@@ -89,10 +96,11 @@ def main():
         optimizer.zero_grad()
         yhat = model(torch.tensor(trainX).float())
         loss = criterion(yhat, torch.tensor(train_NOX).view(-1,1).float())
+        # loss = criterion(yhat, torch.tensor(train_CO).view(-1,1).float())
         loss.backward()
         optimizer.step()
         running_loss.append(loss.item())
-        print(np.mean(running_loss))
+        # print(np.mean(running_loss))
         my_loss.append(np.mean(running_loss))
 
         
@@ -102,12 +110,20 @@ def main():
     # torch.save(model.state_dict(), './result/nn_model_CO')
 
     # model.load_state_dict(torch.load('./result/nn_model_CO'))
+
+    stop = time.time()
+
+    running_time = stop - start
+
     model.eval()
 
     NOX_predict = model(torch.tensor(testX).float())
+    # CO_predict = model(torch.tensor(testX).float())
 
     MAE = torch.mean(abs(NOX_predict - torch.tensor(test_NOX).view(-1,1).float()))
-    print('MAE of CO:',MAE.item())
+    # MAE = torch.mean(abs(CO_predict - torch.tensor(test_CO).view(-1,1).float()))
+    print('MAE of CO:%.2f'%(MAE.item()))
+    print('running time: %.2fs'%(running_time))
 
 if __name__ == '__main__':
     main()

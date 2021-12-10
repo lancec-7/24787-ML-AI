@@ -1,5 +1,4 @@
-from numpy.core.fromnumeric import mean
-from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import GradientBoostingRegressor
 import numpy as np
 import pandas as pd
 from scipy.stats import lognorm
@@ -50,6 +49,7 @@ def normalize_Logistic(x):
 def main():
     start = time.time()
 
+
     # load the data
     trainX, train_CO, train_NOX= load_train()
     testX, test_CO, test_NOX = load_test()
@@ -67,25 +67,25 @@ def main():
     trainX = poly.fit_transform(trainX)
     testX = poly.fit_transform(testX)
 
-
     # trainX = np.delete(trainX,(4,5,8),1)
     # testX = np.delete(testX,(4,5,8),1)
-    
+
     # train CO
-    model_CO = LinearRegression()
+    model_CO = GradientBoostingRegressor()
     model_CO.fit(trainX,train_CO)
 
     predict_CO = model_CO.predict(testX)
     MAE_CO = np.mean(abs(predict_CO - test_CO))
 
-    # train NOX
-    # model_NOX = LinearRegression()
+    # # train NOX
+    # model_NOX = GradientBoostingRegressor()
     # model_NOX.fit(trainX,train_NOX)
 
     # predict_NOX = model_NOX.predict(testX)
     # MAE_NOX = np.mean(abs(predict_NOX - test_NOX))
 
     stop = time.time()
+
     running_time = stop - start
 
     print('MAE of CO:%.2f'%(MAE_CO))
@@ -93,9 +93,10 @@ def main():
     print('mean of data:',np.mean(test_CO))
     print('*' * 50)
 
-    # print('MAE of NOX:%.2f'%(MAE_NOX))
+    # print('MSE of NOX:%.2f'%(MAE_NOX))
     # print('mean of predict:',np.mean(predict_NOX))
     # print('mean of data:',np.mean(test_NOX))
+    # print('*' * 50)
 
     print('runtime: %.2fs'%(running_time))
 

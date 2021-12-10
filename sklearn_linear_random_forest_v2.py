@@ -3,7 +3,8 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import KFold
-
+import time
+from sklearn.preprocessing import PolynomialFeatures
 
 def load_train():
     train_data_2011 = pd.read_csv('./data/gt_2011.csv').values
@@ -39,6 +40,8 @@ def normalize_Logistic(x):
 
 def main():
 
+    start = time.time()
+
     trainX, train_CO, train_NOX = load_train()
     testX, test_CO, test_NOX = load_test()
 
@@ -51,22 +54,32 @@ def main():
     # trainX = normalize_Logistic(trainX)
     # testX = normalize_Logistic(testX)
 
-    trainX = np.delete(trainX,(4,5,8),1)
-    testX = np.delete(testX,(4,5,8),1)
+    # trainX = np.delete(trainX,(4,5,8),1)
+    # testX = np.delete(testX,(4,5,8),1)
+
+    poly = PolynomialFeatures(2)
+    trainX = poly.fit_transform(trainX)
+    testX = poly.fit_transform(testX)
 
     randomforest = RandomForestRegressor()
     randomforest.fit(trainX,train_CO)
     CO_predict = randomforest.predict(testX)
     MAE_CO = np.mean(abs(CO_predict - test_CO))
 
-    randomforest = RandomForestRegressor()
-    randomforest.fit(trainX,train_NOX)
-    NOX_predict = randomforest.predict(testX)
-    MAE_NOX = np.mean(abs(NOX_predict - test_NOX))
+    # randomforest = RandomForestRegressor()
+    # randomforest.fit(trainX,train_NOX)
+    # NOX_predict = randomforest.predict(testX)
+    # MAE_NOX = np.mean(abs(NOX_predict - test_NOX))
 
-    print('MAE of CO:',np.mean(MAE_CO))
+    stop = time.time()
+    running_time = stop - start
+
+    print('MAE of CO:%.2f'%(np.mean(MAE_CO)))
     print('*' * 50)
-    print('MAE of NOX:',np.mean(MAE_NOX))
+    # print('MAE of NOX:%.2f'%(np.mean(MAE_NOX)))
+    # print('*' * 50)
+
+    print('runtime: %.2fs'%(running_time))
 
 if __name__ == '__main__':
     main()
